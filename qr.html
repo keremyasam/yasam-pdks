@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Yaşam PDKS - QR Ekran</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+body{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:white}
+.container{text-align:center;padding:40px;max-width:600px;width:90%}
+h1{font-size:2.2em;margin-bottom:10px}
+.qr-box{background:white;padding:30px;border-radius:20px;display:inline-block;margin:20px 0;min-width:360px;min-height:360px;display:flex;align-items:center;justify-content:center}
+.clock{font-size:4em;font-weight:bold;margin-bottom:10px}
+.date{font-size:1.3em;margin-bottom:20px;opacity:0.9}
+.countdown{font-size:1.1em;background:rgba(255,255,255,0.2);padding:10px 20px;border-radius:30px;display:inline-block}
+.info{margin-top:30px;opacity:0.8;line-height:1.6}
+.status{margin-top:20px;padding:10px;background:rgba(255,255,255,0.1);border-radius:10px}
+.pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:9999}
+.pin-box{background:white;color:#1e3c72;padding:30px;border-radius:15px;min-width:300px;text-align:center}
+.pin-box input{padding:12px;width:100%;margin:15px 0;text-align:center;font-size:1.2em;border:2px solid #1e3c72;border-radius:8px}
+.pin-box button{background:#1e3c72;color:white;padding:12px;width:100%;border:none;border-radius:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="pin-overlay" id="pinOverlay">
+<div class="pin-box"><h2>🔒 Tablet PIN</h2><input type="password" id="pinInput" placeholder="PIN (2023)"><button onclick="checkPin()">Giriş</button><p id="pinError" style="color:red;display:none">Hatalı PIN!</p></div>
+</div>
+<div class="container" id="mainContainer" style="display:none">
+<h1>🏥 Yaşam PDKS</h1><p>Giriş - Çıkış için QR kodu okutun</p>
+<div class="clock" id="clock">00:00:00</div><div class="date" id="date">--</div>
+<div class="qr-box"><div id="qrcode"></div></div>
+<div class="countdown" id="countdown">Yeni QR: 20 saniye</div>
+<div class="info">📱 Telefonunuzdan giriş yapın<br>📷 QR Tara ile okutun</div>
+<div class="status" id="status">Sistem hazır</div>
+</div>
+<script>
+const QR_REFRESH=20; let countdown=QR_REFRESH;
+function checkPin(){ if(document.getElementById('pinInput').value==='2023'){ document.getElementById('pinOverlay').style.display='none'; document.getElementById('mainContainer').style.display='block'; start(); } else document.getElementById('pinError').style.display='block'; }
+function updateClock(){ const n=new Date(); document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0'); const gunler=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'], aylar=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']; document.getElementById('date').textContent=n.getDate()+' '+aylar[n.getMonth()]+' '+n.getFullYear()+' - '+gunler[n.getDay()]; }
+function genToken(){ const c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; let t=''; for(let i=0;i<32;i++) t+=c.charAt(Math.floor(Math.random()*c.length)); return t; }
+function genQR(){ const token=genToken(); const exp=new Date(Date.now()+25000); localStorage.setItem('yasam_qr_current',token); const q=document.getElementById('qrcode'); q.innerHTML=''; new QRCode(q,{text:JSON.stringify({token,location_id:1,expires_at:exp.toISOString(),hastane:'Elbistan Yasam'}),width:300,height:300,colorDark:'#1e3c72',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); document.getElementById('status').textContent='✅ Sistem aktif - QR hazır'; countdown=QR_REFRESH; }
+function updCount(){ countdown--; document.getElementById('countdown').textContent='Yeni QR: '+countdown+' saniye'; if(countdown<=0) genQR(); }
+function start(){ updateClock(); setInterval(updateClock,1000); genQR(); setInterval(updCount,1000); }
+</script>
+</body>
+</html>
